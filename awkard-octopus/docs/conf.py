@@ -1,8 +1,4 @@
-import os
-import sys
 from datetime import date
-
-sys.path.insert(0, os.path.abspath('./_ext'))
 
 project = "Sphinx Unpack Demo"
 copyright = f"{date.today().year}, Charles Tapley Hoyt"
