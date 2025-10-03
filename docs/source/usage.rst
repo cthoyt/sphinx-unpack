@@ -1,5 +1,5 @@
 Usage
 =====
 
-.. automodule:: sphinx_unpack.api
+.. automodule:: sphinx_unpack
     :members:

@@ -1,21 +1,24 @@
-"""Implementation of a Sphinx plugin to handle unpacking typed dicts in variadic keyword arguments."""
+"""A Sphinx plugin that automatically documents type-annotated variadic keyword arguments."""
 
 from __future__ import annotations
 
 import inspect
 import typing
-from typing import Annotated, Any, NamedTuple
-from typing_extensions import Doc, Unpack, TypedDict
+from typing import Annotated, Any, NamedTuple, cast
 
 from sphinx.application import Sphinx
+from typing_extensions import Doc, ParamSpec, TypeVar, Unpack
 
 __all__ = [
-    "setup",
-    "process_docstring",
     "TypePair",
     "get_typeddict_docstrs",
     "get_unpacked_typed_dict_cls",
+    "process_docstring",
+    "setup",
 ]
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 def setup(app: Sphinx) -> dict[str, Any]:
@@ -28,7 +31,7 @@ def setup(app: Sphinx) -> dict[str, Any]:
     }
 
 
-def _register(app: Sphinx, function) -> int:
+def _register(app: Sphinx, function: typing.Callable[P, T]) -> int:
     # this implements the secret naming convention for functions
     # to register with the app. I don't understand it
     norm_func_name = function.__name__.replace("_", "-")
@@ -36,16 +39,16 @@ def _register(app: Sphinx, function) -> int:
     return app.connect(name, function)
 
 
-def get_unpacked_typed_dict_cls(func: typing.Callable) -> type[TypedDict] | None:
-    """Return the TypedDict class annotated with Unpack on the variadic keyword arguments to a function."""
+def get_unpacked_typed_dict_cls(func: typing.Callable[P, T]) -> type | None:
+    """Get the typed dict annotated on the function's variadic kwargs via Unpack."""
     sig = inspect.signature(func)
-    for name, param in sig.parameters.items():
+    for _name, param in sig.parameters.items():
         if param.kind != inspect.Parameter.VAR_KEYWORD:
             continue
         if typing.get_origin(param.annotation) is not Unpack:
             continue
         typed_dict_class = typing.get_args(param.annotation)[0]
-        return typed_dict_class
+        return cast(type, typed_dict_class)
     return None
 
 
@@ -56,7 +59,7 @@ class TypePair(NamedTuple):
     docstring: str | None
 
 
-def get_typeddict_docstrs(typed_dict: type[TypedDict]) -> dict[str, TypePair]:
+def get_typeddict_docstrs(typed_dict: type) -> dict[str, TypePair]:
     """Get a dictionary from fields in a TypedDict to their type/doc.
 
     Note, Python does not have a built-in mechanism to recognize nor access
@@ -94,7 +97,7 @@ def _get_first_doc(args: typing.Iterable[Any]) -> str | None:
     return None
 
 
-def _process_docstring_helper(obj: typing.Callable, lines: list[str]) -> None:
+def _process_docstring_helper(obj: typing.Callable[P, T], lines: list[str]) -> None:
     typed_dict_cls = get_unpacked_typed_dict_cls(obj)
     if typed_dict_cls is None:
         return None
@@ -122,7 +125,7 @@ def _identify_already_documented(lines: list[str]) -> set[str]:
 def process_docstring(
     app: Sphinx, what: str, name: str, obj: Any, options: Any, lines: list[str]
 ) -> None:
-    """Append parameter docstrings and types based on unpacked typed dict annotations on variadic keyword arguments."""
+    """Insert docstrings based on type-annotated variadic kwargs."""
     if what != "function":
         return None
     _process_docstring_helper(obj, lines)
@@ -143,9 +146,7 @@ def _insert(lines: list[str], doc_lines: list[str]) -> None:
 def _get_position(lines: list[str]) -> tuple[int, bool]:
     """Get the position where new lines should be inserted."""
     try:
-        position = min(
-            i for i, line in enumerate(lines) if any(part in line for part in PARTS)
-        )
+        position = min(i for i, line in enumerate(lines) if any(part in line for part in PARTS))
     except ValueError:
         try:
             # if there aren't any lines inside the docstring that are already

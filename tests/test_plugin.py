@@ -1,19 +1,19 @@
 """Trivial version test."""
 
-from sphinx_unpack.version import get_version
-
 import unittest
 from textwrap import dedent
+from typing import Annotated, Any, Unpack
+
+from typing_extensions import Doc, TypedDict
 
 from sphinx_unpack import (
-    get_unpacked_typed_dict_cls,
-    get_typeddict_docstrs,
     TypePair,
     _get_position,
     _insert,
+    get_typeddict_docstrs,
+    get_unpacked_typed_dict_cls,
 )
-from typing import Annotated, Unpack, Any
-from typing_extensions import Doc, TypedDict
+from sphinx_unpack.version import get_version
 
 
 class TestVersion(unittest.TestCase):
@@ -34,44 +34,49 @@ class TestPlugin(unittest.TestCase):
     def test_get_unpacked(self) -> None:
         """Test getting the unpacked type dict."""
 
-        def func_0():
-            pass
+        def func_0() -> None:
+            """Return none when passing no arguments."""
 
         self.assertIsNone(get_unpacked_typed_dict_cls(func_0))
 
-        def func_1(arg: int):
-            pass
+        def func_1(arg: int) -> None:
+            """Return none when passing a positional argument."""
 
         self.assertIsNone(get_unpacked_typed_dict_cls(func_1))
 
-        def func_2(*args: int):
-            pass
+        def func_2(*args: int) -> None:
+            """Return none when passing unannotated variadic positional args."""
 
         self.assertIsNone(get_unpacked_typed_dict_cls(func_2))
 
-        def func_3(**kwargs: Any):
-            pass
+        def func_3(**kwargs: Any) -> None:
+            """Return none when passing unannotated variadic kwargs."""
 
         self.assertIsNone(get_unpacked_typed_dict_cls(func_3))
 
         class Kwargs(TypedDict):
+            """A typed dictionary with some keyword arguments."""
+
             name: str
 
         def func_4(**kwargs: Unpack[Kwargs]) -> None:
             """Print the keyword arguments."""
-            print(kwargs)
 
         self.assertEqual(Kwargs, get_unpacked_typed_dict_cls(func_4))
 
     def test_get_docstrs(self) -> None:
+        """Test getting the docstrings from typed dictionaries."""
+
         class KwargsMissingDocs(TypedDict):
+            """A type dictionary with no docstrings."""
+
             name: str
 
-        self.assertEqual(
-            {"name": TypePair(str, None)}, get_typeddict_docstrs(KwargsMissingDocs)
-        )
+        self.assertEqual({"name": TypePair(str, None)}, get_typeddict_docstrs(KwargsMissingDocs))
 
         class KwargsWithDocs(TypedDict):
+            """A typed dictionary with docstrings."""
+
             name: Annotated[str, Doc("test docstring")]
 
         self.assertEqual(
@@ -102,6 +107,7 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual((1, True), _get_position(lines))
 
     def test_insert_docs_exists(self) -> None:
+        """Test inserting when there are already some other docs."""
         lines = _f("""\
             First line.
 
@@ -124,7 +130,7 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual(lines_updated, lines)
 
     def test_insert_one_liner(self) -> None:
-        """Test inserting when there are no prior docs."""
+        """Test inserting when there is only a one-liner with no prior parameter docs."""
         lines = _f("First line.")
         _insert(lines, [":param more: something"])
         lines_updated = _f("""\
@@ -135,7 +141,7 @@ class TestPlugin(unittest.TestCase):
         self.assertEqual(lines_updated, lines)
 
     def test_insert_no_docs(self) -> None:
-        """Test inserting when there are no prior docs."""
+        """Test inserting when there are no prior parameter docs."""
         lines = _f("""\
             First line.
 
@@ -147,7 +153,7 @@ class TestPlugin(unittest.TestCase):
 
             :param more: something
 
-            something else.            
+            something else.
         """)
         self.assertEqual(lines_updated, lines)
 
