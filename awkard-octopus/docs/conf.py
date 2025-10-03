@@ -6,11 +6,18 @@ author = "Charles Tapley Hoyt"
 version = "0.0.1-dev"
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints',
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.autodoc",
+    "sphinx_autodoc_typehints",
     # This is the module which can be imported directly.
     # inside the module is a ``setup()`` function
     #
-    'sphinx_unpack',
+    "sphinx_unpack",
 ]
+
+html_theme = "sphinx_rtd_theme"
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+}

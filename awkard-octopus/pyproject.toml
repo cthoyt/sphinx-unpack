@@ -22,9 +22,10 @@ dependencies = [
 [dependency-groups]
 docs = [
     "sphinx>=8",
-    "sphinx_automodapi",
-    "sphinx_autodoc_typehints",
-    "sphinx_unpack",
+    "sphinx-automodapi",
+    "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
+    "sphinx-unpack",
 ]
 
 [tool.uv.sources]

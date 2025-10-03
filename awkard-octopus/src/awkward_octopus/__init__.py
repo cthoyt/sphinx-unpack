@@ -1,13 +1,19 @@
-from typing import Annotated
-from typing_extensions import Doc
+from typing_extensions import Unpack, TypedDict, Annotated, Doc
 
 __all__ = [
     "greet",
 ]
 
 
-def greet(
+class GreetingKwargs(TypedDict):
+    """Keyword argument used for greetings."""
+
     name: Annotated[str, Doc("The name of the person to greet")]
-) -> Annotated[str, Doc("A greeting message")]:
-    """Return a greeting."""
-    return f"Hello, {name}!"
+
+
+def greet(**kwargs: Unpack[GreetingKwargs]) -> str:
+    """Return a greeting.
+
+    :return: A greeting
+    """
+    return f"Hello, {kwargs['name']}!"
