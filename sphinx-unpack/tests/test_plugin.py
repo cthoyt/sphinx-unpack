@@ -1,6 +1,13 @@
 import unittest
+from textwrap import dedent
 
-from sphinx_unpack import get_unpacked_typed_dict_cls, get_typeddict_docstrs, TypePair
+from sphinx_unpack import (
+    get_unpacked_typed_dict_cls,
+    get_typeddict_docstrs,
+    TypePair,
+    _get_position,
+    _insert,
+)
 from typing import Annotated, Unpack, Any
 from typing_extensions import Doc, TypedDict
 
@@ -40,7 +47,7 @@ class TestPlugin(unittest.TestCase):
 
         self.assertEqual(Kwargs, get_unpacked_typed_dict_cls(func_4))
 
-    def test_next_step(self) -> None:
+    def test_get_docstrs(self) -> None:
         class KwargsMissingDocs(TypedDict):
             name: str
 
@@ -55,3 +62,79 @@ class TestPlugin(unittest.TestCase):
             {"name": TypePair(str, "test docstring")},
             get_typeddict_docstrs(KwargsWithDocs),
         )
+
+    def test_get_position(self) -> None:
+        """Test getting the position to insert."""
+        lines = _f("""\
+            First line.
+
+            :param hello: something
+            :returns: this is the place
+
+            something else.
+        """)
+        self.assertEqual((3, False), _get_position(lines))
+
+        lines = _f("Single line.")
+        self.assertEqual((1, True), _get_position(lines))
+
+        lines = _f("""\
+            First line.
+
+            something else.
+        """)
+        self.assertEqual((1, True), _get_position(lines))
+
+    def test_insert_docs_exists(self) -> None:
+        lines = _f("""\
+            First line.
+
+            :param hello: something
+            :returns: this is the place
+
+            something else.
+        """)
+
+        _insert(lines, [":param more: something"])
+        lines_updated = _f("""\
+            First line.
+
+            :param hello: something
+            :param more: something
+            :returns: this is the place
+
+            something else.
+        """)
+        self.assertEqual(lines_updated, lines)
+
+    def test_insert_one_liner(self) -> None:
+        """Test inserting when there are no prior docs."""
+        lines = _f("First line.")
+        _insert(lines, [":param more: something"])
+        lines_updated = _f("""\
+            First line.
+
+            :param more: something
+        """)
+        self.assertEqual(lines_updated, lines)
+
+    def test_insert_no_docs(self) -> None:
+        """Test inserting when there are no prior docs."""
+        lines = _f("""\
+            First line.
+
+            something else.
+        """)
+        _insert(lines, [":param more: something"])
+        lines_updated = _f("""\
+            First line.
+    
+            :param more: something
+
+            something else.            
+        """)
+        self.assertEqual(lines_updated, lines)
+
+
+def _f(s: str) -> list[str]:
+    return dedent(s).rstrip().splitlines()

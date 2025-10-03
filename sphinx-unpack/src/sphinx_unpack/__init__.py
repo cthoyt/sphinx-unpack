@@ -94,33 +94,70 @@ def _get_first_doc(args: typing.Iterable[Any]) -> str | None:
     return None
 
 
+def _process_docstring_helper(obj: typing.Callable, lines: list[str]) -> None:
+    typed_dict_cls = get_unpacked_typed_dict_cls(obj)
+    if typed_dict_cls is None:
+        return None
+    data = get_typeddict_docstrs(typed_dict_cls)
+
+    already_documented = _identify_already_documented(lines)
+    doc_lines: list[str] = []
+    for param_name, (type_str, doc) in data.items():
+        if param_name in already_documented:
+            continue
+        if doc:
+            doc_lines.append(f":param {type_str.__name__} {param_name}: {doc}")
+        else:
+            doc_lines.append(f":type {param_name}: {type_str.__name__}")
+
+    _insert(lines, doc_lines)
+    return None
+
+
+def _identify_already_documented(lines: list[str]) -> set[str]:
+    return set()
+
+
 def process_docstring(
     app: Sphinx, what: str, name: str, obj: Any, options: Any, lines: list[str]
 ) -> None:
     """Append parameter docstrings and types based on unpacked typed dict annotations on variadic keyword arguments."""
     if what != "function":
         return None
-
-    typed_dict_cls = get_unpacked_typed_dict_cls(obj)
-    if typed_dict_cls is None:
-        return None
-    d = get_typeddict_docstrs(typed_dict_cls)
-
-    doc_lines: list[str] = []
-    for param_name, (type_str, doc) in d.items():
-        if doc:
-            doc_lines.append(f":param {param_name}: {doc}")
-
-        doc_lines.append(f":type {param_name}: {type_str.__name__}")
-
-    # TODO find the minimum index of lines that have :return: :returns: or :rtype:
-    lines.extend(doc_lines)
+    _process_docstring_helper(obj, lines)
     return None
 
 
 PARTS = {":return:", ":returns:", ":rtype:"}
 
 
-def _minimum(lines: list[str]) -> int:
-    rv = min(i for i, line in enumerate(lines) if any(part in line for part in PARTS))
-    return rv or len(lines)
+def _insert(lines: list[str], doc_lines: list[str]) -> None:
+    position, add_extra_lines = _get_position(lines)
+    if add_extra_lines:
+        lines[position:position] = ["", *doc_lines]
+    else:
+        lines[position:position] = doc_lines
+
+
+def _get_position(lines: list[str]) -> tuple[int, bool]:
+    """Get the position where new lines should be inserted."""
+    try:
+        position = min(
+            i for i, line in enumerate(lines) if any(part in line for part in PARTS)
+        )
+    except ValueError:
+        try:
+            # if there aren't any lines inside the docstring that are already
+            # the return values, then we will look for the first blank line
+            # to insert it into. This is because the convention for docstrings
+            # is that the first line is a short explanation of what the function
+            # does, then the rest is long-form explanation. So stick the params
+            # first before the long-form explanation
+            position = min(i for i, line in enumerate(lines) if not line.strip())
+        except ValueError:
+            # there are no blank lines, just pick the end
+            # find the first empty line and stick it there
+            position = len(lines)
+        return position, True
+    else:
+        return position, False
