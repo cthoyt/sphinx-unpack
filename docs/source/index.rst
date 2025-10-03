@@ -8,6 +8,7 @@ Sphinx Unpack |release| Documentation
 
     installation
     usage
+    reference
 
 Indices and Tables
 ------------------

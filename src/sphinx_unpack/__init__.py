@@ -62,18 +62,18 @@ class TypePair(NamedTuple):
 def get_typeddict_docstrs(typed_dict: type) -> dict[str, TypePair]:
     """Get a dictionary from fields in a TypedDict to their type/doc.
 
-    Note, Python does not have a built-in mechanism to recognize nor access
-    docstrings on attributes of classes. Sphinx is able to do this in a few
-    places, but their code is totally impenetrable, so this implementation
-    asks you to use the more explicit :class:`typing.Doc` construct like in
-    the following:
+    Note, Python does not have a built-in mechanism to recognize nor access docstrings
+    on attributes of classes. Sphinx is able to do this in a few places, but their code
+    is totally impenetrable, so this implementation asks you to use the more explicit
+    :class:`typing.Doc` construct like in the following:
 
     .. code-block:: python
 
         from typing import Annotated, Doc, TypedDict
 
+
         class GreetingKwargs(TypedDict):
-            name: Annotated[str, Doc("the person to greet")
+            name: Annotated[str, Doc("the person to greet")]
             title: Annotated[str | None, Doc("the optional title to use in their greeting")]
             favorite_color: str | None
 
