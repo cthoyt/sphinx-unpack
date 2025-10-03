@@ -1,3 +1,7 @@
+"""Trivial version test."""
+
+from sphinx_unpack.version import get_version
+
 import unittest
 from textwrap import dedent
 
@@ -10,6 +14,18 @@ from sphinx_unpack import (
 )
 from typing import Annotated, Unpack, Any
 from typing_extensions import Doc, TypedDict
+
+
+class TestVersion(unittest.TestCase):
+    """Trivially test a version."""
+
+    def test_version_type(self) -> None:
+        """Test the version is a string.
+
+        This is only meant to be an example test.
+        """
+        version = get_version()
+        self.assertIsInstance(version, str)
 
 
 class TestPlugin(unittest.TestCase):
@@ -128,7 +144,7 @@ class TestPlugin(unittest.TestCase):
         _insert(lines, [":param more: something"])
         lines_updated = _f("""\
             First line.
-    
+
             :param more: something
 
             something else.            

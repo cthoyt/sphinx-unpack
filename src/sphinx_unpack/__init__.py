@@ -115,6 +115,7 @@ def _process_docstring_helper(obj: typing.Callable, lines: list[str]) -> None:
 
 
 def _identify_already_documented(lines: list[str]) -> set[str]:
+    # TODO
     return set()
 
 
