@@ -2,9 +2,9 @@
 
 import unittest
 from textwrap import dedent
-from typing import Annotated, Any, Unpack
+from typing import Annotated, Any
 
-from typing_extensions import Doc, TypedDict
+from typing_extensions import Doc, TypedDict, Unpack
 
 from sphinx_unpack import (
     TypePair,
