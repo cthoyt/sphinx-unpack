@@ -1,0 +1,2 @@
+build:
+    uv run --group docs sphinx-build docs/ docs/build/

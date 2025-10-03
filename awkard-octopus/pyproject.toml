@@ -1,0 +1,31 @@
+[build-system]
+requires = ["uv_build>=0.6.6,<1.0"]
+build-backend = "uv_build"
+
+[project]
+name = "awkward_octopus"
+version = "0.0.1-dev"
+description = "Send greetings from an awkward octopus"
+readme = "README.md"
+authors = [
+    { name = "Charles Tapley Hoyt", email = "cthoyt@gmail.com" }
+]
+maintainers = [
+    { name = "Charles Tapley Hoyt", email = "cthoyt@gmail.com" }
+]
+
+requires-python = ">=3.10"
+dependencies = [
+    "typing-extensions",
+]
+
+[dependency-groups]
+docs = [
+    "sphinx>=8",
+    "sphinx_automodapi",
+    "sphinx_autodoc_typehints",
+    "sphinx_unpack",
+]
+
+[tool.uv.sources]
+sphinx-unpack = { path = "../sphinx-unpack", editable = true }
