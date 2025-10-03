@@ -78,6 +78,13 @@ def greet(**kwargs: Unpack[GreetingKwargs]):
     return f"hello, {kwargs['name']}!"
 ```
 
+If you're using
+[Napoleon- or NumPy-style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/)
+docstrings, then you're out of luck, this package is built out of bubble gum,
+paper clips, and duct tape to implement string operations. If you're aware of a
+more principled approach to working with docstrings, please feel free to submit
+a PR.
+
 ## 🚀 Installation
 
 The most recent release can be installed from
